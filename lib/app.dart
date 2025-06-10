@@ -1,19 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'config/app_config.dart';
+import 'core/theme/bloc/theme_cubit.dart';
+import 'core/theme/bloc/theme_state.dart';
+import 'core/theme/theme_showcase.dart';
 
 class AidraConnectApp extends StatelessWidget {
-  const AidraConnectApp({super.key});
+  final SharedPreferences sharedPreferences;
+
+  const AidraConnectApp({super.key, required this.sharedPreferences});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: AppConfig.currentAppName,
-      debugShowCheckedModeBanner: AppConfig.isDebugMode,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
+    return BlocProvider(
+      create: (context) => ThemeCubit(sharedPreferences),
+      child: BlocBuilder<ThemeCubit, ThemeState>(
+        builder: (context, themeState) {
+          return MaterialApp(
+            title: AppConfig.currentAppName,
+            debugShowCheckedModeBanner: AppConfig.isDebugMode,
+            theme: themeState.lightTheme,
+            darkTheme: themeState.darkTheme,
+            themeMode: themeState.flutterThemeMode,
+            home: const HomePage(),
+          );
+        },
       ),
-      home: const HomePage(),
     );
   }
 }
@@ -55,6 +68,20 @@ class HomePage extends StatelessWidget {
                     _buildInfoRow(
                       'Debug Mode:',
                       AppConfig.isDebugMode.toString(),
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => const ThemeShowcase(),
+                            ),
+                          );
+                        },
+                        child: const Text('View Theme Showcase'),
+                      ),
                     ),
                   ],
                 ),
